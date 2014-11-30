@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using SocialExplorer.IO.FastDBF;
+using System.Collections;
 
 
 namespace DBF2CSV
@@ -24,127 +25,121 @@ namespace DBF2CSV
     static void Main(string[] args)
     { 
       
-      if(args.Length < 2)
+      //if(args.Length < 2)
+      //{ 
+      //  //print help
+      //  Console.WriteLine("\n\n");
+      //  Console.WriteLine("Welcome to Social Explorer DBF 2 CSV Utility");
+      //  Console.WriteLine("-------------------------------------------------");
+      //  Console.WriteLine("\nParameters:");
+      //  Console.WriteLine("1. input DBF file");
+      //  Console.WriteLine("2. output CSV file");
+        
+      //  Console.WriteLine("\nOptional switches:");
+      //  Console.WriteLine("/F  - format numbers so 5.5000 comes out as 5.5");
+      //  Console.WriteLine("/P  - padded output, fixed width (/P trumps /F)");
+      //  Console.WriteLine("/Q  - only output quotes when comma appears in data");
+        
+      //  Console.WriteLine("\n\nExample: dbf2csv \"in.dbf\" \"out.csv\" /P /Q");
+        
+      //}
+      //else
       { 
-        //print help
-        Console.WriteLine("\n\n");
-        Console.WriteLine("Welcome to Social Explorer DBF 2 CSV Utility");
-        Console.WriteLine("-------------------------------------------------");
-        Console.WriteLine("\nParameters:");
-        Console.WriteLine("1. input DBF file");
-        Console.WriteLine("2. output CSV file");
         
-        Console.WriteLine("\nOptional switches:");
-        Console.WriteLine("/F  - format numbers so 5.5000 comes out as 5.5");
-        Console.WriteLine("/P  - padded output, fixed width (/P trumps /F)");
-        Console.WriteLine("/Q  - only output quotes when comma appears in data");
-        
-        Console.WriteLine("\n\nExample: dbf2csv \"in.dbf\" \"out.csv\" /P /Q");
-        
-      }
-      else
-      { 
-        
-        //check if input DBF file exists...
-        if(!File.Exists(args[0]))
-        {
-          Console.WriteLine("Input file '" + args[0] + "' does not exist!");
-          return;
-        }
+        ////check if input DBF file exists...
+        //if(!File.Exists(args[0]))
+        //{
+        //  Console.WriteLine("Input file '" + args[0] + "' does not exist!");
+        //  return;
+        //}
         
         
-        //create output csv file overwrite if already exists.
-        if(File.Exists(args[1]))
-        { 
-          //ask to overwrite:
-          Console.WriteLine("Output CSV file '" + args[1] + "' already exists.");
-          Console.WriteLine("Would you like to overwrite it? Press 'Y' for yes: ");
-          if(Console.ReadKey().KeyChar.ToString().ToUpper() != "Y")
-            return;
-        }
+        ////create output csv file overwrite if already exists.
+        //if(File.Exists(args[1]))
+        //{ 
+        //  //ask to overwrite:
+        //  Console.WriteLine("Output CSV file '" + args[1] + "' already exists.");
+        //  Console.WriteLine("Would you like to overwrite it? Press 'Y' for yes: ");
+        //  if(Console.ReadKey().KeyChar.ToString().ToUpper() != "Y")
+        //    return;
+        //}
         
         bool bSwitchF = false;
         bool bSwitchP = false;
         bool bSwitchQ = false;
         
-        for(int i=0;i<args.Length;i++)
-          if(args[i] == "/F")
-            bSwitchF = true;
+        //for(int i=0;i<args.Length;i++)
+        //  if(args[i] == "/F")
+        //    bSwitchF = true;
         
-        for (int i = 0; i < args.Length; i++)
-          if (args[i] == "/P")
-            bSwitchP = true;
+        //for (int i = 0; i < args.Length; i++)
+        //  if (args[i] == "/P")
+        //    bSwitchP = true;
         
-        for (int i = 0; i < args.Length; i++)
-          if (args[i] == "/Q")
-            bSwitchQ = true;
-        
-        
+        //for (int i = 0; i < args.Length; i++)
+        //  if (args[i] == "/Q")
+        //    bSwitchQ = true;
+        string inputputfn = "roads.dbf";
+        string outputfn = "roads1.csv";
         //open DBF file and create CSV output file...
-        StreamWriter swcsv = new StreamWriter(args[1], false, Encoding.Default);
+        StreamWriter swcsv = new StreamWriter(outputfn, false, Encoding.Default);
         DbfFile dbf = new DbfFile(Encoding.UTF8);
-        dbf.Open(args[0], FileMode.Open);
+        dbf.Open(inputputfn, FileMode.Open);
         
         
-        //output column names
-        for (int i = 0; i < dbf.Header.ColumnCount; i++)
-        { 
-          if(dbf.Header[i].ColumnType != DbfColumn.DbfColumnType.Binary && 
-             dbf.Header[i].ColumnType != DbfColumn.DbfColumnType.Memo)
-            swcsv.Write((i == 0 ? "": ",") + dbf.Header[i].Name);
-          else
-            Console.WriteLine("WARNING: Excluding Binary/Memo field '" + dbf.Header[i].Name + "'");
+        ////output column names
+        //for (int i = 0; i < dbf.Header.ColumnCount; i++)
+        //{ 
+        //  if(dbf.Header[i].ColumnType != DbfColumn.DbfColumnType.Binary && 
+        //     dbf.Header[i].ColumnType != DbfColumn.DbfColumnType.Memo)
+        //    swcsv.Write((i == 0 ? "": ",") + dbf.Header[i].Name);
+        //  else
+        //    Console.WriteLine("WARNING: Excluding Binary/Memo field '" + dbf.Header[i].Name + "'");
           
-        }
+        //}
         
-        swcsv.WriteLine();
-        
+        //swcsv.WriteLine();
+         Hashtable table = new Hashtable();
         //output values for all but binary and memo...
         DbfRecord orec = new DbfRecord(dbf.Header);
         while(dbf.ReadNext(orec))
         { 
           //output column values...
-          if (!orec.IsDeleted)
-          { 
-            for (int i = 0; i < orec.ColumnCount; i++)
-            { 
-              if(orec.Column(i).ColumnType == DbfColumn.DbfColumnType.Character)
-              { 
-                //string values: trim, enclose in quotes and escape quotes with double quotes
-                string sval = orec[i];
-                
-                if(!bSwitchP)
-                  sval = orec[i].Trim();
-                
-                if(!bSwitchQ || sval.IndexOf('"') > -1)
-                  sval = ("\"" + sval.Replace("\"", "\"\"") + "\"");
-                
-                swcsv.Write(sval);
-                
-              }
-              else if(orec.Column(i).ColumnType == DbfColumn.DbfColumnType.Date)
-                swcsv.Write(orec.GetDateValue(i).ToString("MM-dd-yyyy"));
-              else
-              { 
-                if (bSwitchP)
-                  swcsv.Write(orec[i]);
-                else if(bSwitchF)
-                  swcsv.Write(FormatNumber(orec[i].Trim()));
-                else
-                  swcsv.Write(orec[i].Trim());
-              }
-              
-              //end record with a linefeed or end column with a comma.
-              if(i < orec.ColumnCount-1) 
-                swcsv.Write(",");
-              
+            if (!orec.IsDeleted)
+            {
+                for (int i = 0; i < orec.ColumnCount; i++)
+                {
+                    if (i != 1) continue;
+                    if (orec.Column(i).ColumnType == DbfColumn.DbfColumnType.Character)
+                    {
+                        //string values: trim, enclose in quotes and escape quotes with double quotes
+                        string sval = orec[i];
+
+                        char[] split = { ' ', '-','/',';','(',')','\'','_','#','\"','.' };
+                        string[] token = sval.Split(split);
+                        for (int j = 0; j < token.Length; j++)
+                        {
+                            if (token[j].Length > 1)
+                            {
+                                if (!table.ContainsKey(token[j].ToLower()))
+                                {
+                                    table.Add(token[j].ToLower(), "");
+                                    swcsv.WriteLine(token[j].ToLower());
+                                }
+                            }
+                        }
+
+                        //end record with a linefeed or end column with a comma.
+                        // if(i < orec.ColumnCount-1) 
+                        //  swcsv.Write(",");
+
+                    }
+
+                    //write line...
+                    //swcsv.WriteLine();
+
+                }
             }
-            
-            //write line...
-            swcsv.WriteLine();
-            
-          }
-          
         }
         
         
